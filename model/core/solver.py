@@ -12,6 +12,7 @@ import math
 import numpy as np
 import copy
 import tensorflow as tf
+from jieba import xrange
 from sklearn.neighbors import NearestNeighbors
 # from biLSTM.preprocessing.preprocessing import batch_data, get_max_seq_len, construct_train_test_corpus, \
 #     generate_labels_from_file, generate_label_pair_from_file
@@ -81,30 +82,30 @@ class ModelSolver(object):
             tf.global_variables_initializer().run()
             saver = tf.train.Saver(tf.global_variables())
             if self.pretrained_model is not None:
-                print 'Start training with pretrained model...'
+                print('Start training with pretrained model...')
                 pretrained_model_path = self.model_path + self.pretrained_model
                 saver.restore(sess, pretrained_model_path)
             for e in xrange(self.n_epochs):
-                print '========== begin epoch %d ===========' % e
+                print('========== begin epoch %d ===========' % e)
                 curr_loss = 0
                 curr_g_loss = 0
                 val_loss = 0
                 if self.if_output_all_labels:
                     k = 0
                     batches = np.arange(math.ceil(len(train_loader.pids)*1.0/self.batch_size), dtype=int)
-                    print len(batches)
+                    print(len(batches))
                     np.random.shuffle(batches)
                     for i in batches:
                         if k % self.show_batches == 0:
-                            print 'batch ' + str(k)
+                            print('batch ' + str(k))
                         batch_pid, batch_x, batch_y = train_loader.get_pid_x(i*self.batch_size, (i+1)*self.batch_size)
                         feed_dict = {self.model.x: np.array(batch_x), self.model.y: np.array(batch_y)}
                         try:
                             _, l_ = sess.run([train_op, loss], feed_dict)
                         except:
-                            print i
-                            print np.array(batch_x).shape
-                            print np.array(batch_y).shape
+                            print(i)
+                            print(np.array(batch_x).shape)
+                            print(np.array(batch_y).shape)
                         curr_loss += l_
                         k += 1
                 else:
@@ -113,10 +114,10 @@ class ModelSolver(object):
                     num_train_points = len(train_loader.pid_label_y)
                     train_batches = xrange(int(math.ceil(num_train_points * 1.0 / self.batch_size)))
                     #train_batches = xrange(int(math.floor(num_train_points * 1.0 / self.batch_size)))
-                    print 'num of train batches:    %d' % len(train_batches)
+                    print('num of train batches:    %d' % len(train_batches))
                     for i in train_batches:
                         if i % self.show_batches == 0:
-                            print 'batch %d' % i
+                            print('batch %d' % i)
                         x, y, seq_l, label_emb, label_prop \
                             = train_loader.next_batch(num_train_points, i*self.batch_size, (i+1)*self.batch_size)
                         if len(y) == 0:
@@ -150,14 +151,14 @@ class ModelSolver(object):
                     # -------------- validate -------------
                     num_val_points = len(train_loader.val_pid_label_y)
                     val_pid_batches = xrange(int(math.ceil(num_val_points*1.0 / self.batch_size)))
-                    print 'num of validate pid batches: %d' % len(val_pid_batches)
+                    print('num of validate pid batches: %d' % len(val_pid_batches))
                     pre_pid_prop = {}
                     pre_pid_score = {}
                     tar_pid_y = {}
                     tar_pid_true_label_prop = {}
                     for i in val_pid_batches:
                         if i % self.show_batches == 0:
-                            print 'batch %d' % i
+                            print('batch %d' % i)
                         batch_pid, x, y, seq_l, label_emb, label_prop, count_score \
                             = train_loader.get_val_batch(num_val_points, i*self.batch_size, (i+1)*self.batch_size)
                         if self.if_use_seq_len:
@@ -199,23 +200,23 @@ class ModelSolver(object):
                 train_loader.reset_data()
                 # ====== output loss ======
                 w_text = 'at epoch %d, g_loss = %f , train loss is %f \n' % (e, curr_g_loss, curr_loss)
-                print w_text
+                print(w_text)
                 o_file.write(w_text)
                 w_text = 'at epoch %d, val loss is %f \n' % (e, val_loss)
-                print w_text
+                print(w_text)
                 o_file.write(w_text)
                 w_text = 'at epoch %d, val_results: ' % e
                 w_text = w_text + str(val_results)
-                print w_text
+                print(w_text)
                 o_file.write(w_text)
                 # ====== save model ========
                 save_name = self.model_path + 'model'
                 saver.save(sess, save_name, global_step=e+1)
-                print 'model-%s saved.' % (e+1)
+                print('model-%s saved.' % (e + 1))
                 # '''
                 # ----------------- test ---------------------
                 if e % 2 == 0:
-                    print '=============== test ================'
+                    print('=============== test ================')
                     test_loss = 0
                     if self.if_output_all_labels:
                         pre_pid_score = {}
@@ -225,13 +226,13 @@ class ModelSolver(object):
                         #np.random.shuffle(batches)
                         for i in batches:
                             if k % self.show_batches == 0:
-                                print 'batch ' + str(i)
+                                print('batch ' + str(i))
                             batch_pid, batch_x, batch_y = test_loader.get_pid_x(int(i * self.batch_size),
                                                                                  int((i + 1) * self.batch_size))
                             try:
                                 feed_dict = {self.model.x: np.array(batch_x), self.model.y: np.array(batch_y)}
                             except:
-                                print i
+                                print(i)
                             y_p, l_ = sess.run([y_, loss], feed_dict)
                             #print l_
                             test_loss += l_
@@ -249,10 +250,10 @@ class ModelSolver(object):
                         tar_pid_true_label_prop = {}
                         num_test_points = len(test_loader.pid_label_y)
                         test_pid_batches = xrange(int(math.ceil(num_test_points * 1.0 / self.batch_size)))
-                        print 'num of test pid batches: %d' % len(test_pid_batches)
+                        print('num of test pid batches: %d' % len(test_pid_batches))
                         for i in test_pid_batches:
                             if i % self.show_batches == 0:
-                                print 'batch ' + str(i)
+                                print('batch ' + str(i))
                             batch_pid, x, y, seq_l, label_emb, label_prop, count_score = test_loader.get_batch(
                                     num_test_points, i * self.batch_size, (i + 1) * self.batch_size)
                             if self.if_use_seq_len:
@@ -290,7 +291,7 @@ class ModelSolver(object):
                         test_results = results_for_score_vector(tar_pid_true_label_prop, tar_pid_y, pre_pid_score,
                                                                    pre_pid_prop)
                     w_text = 'at epoch %d, test loss is %f \n' % (e, test_loss)
-                    print w_text
+                    print(w_text)
                     o_file.write(w_text)
                     p1_txt = 'prec_wt@1: %f \n' % test_results[0]
                     p3_txt = 'prec_wt@3: %f \n' % test_results[1]
@@ -299,11 +300,11 @@ class ModelSolver(object):
                     ndcg3_txt = 'ndcg_wt@3: %f \n' % test_results[4]
                     ndcg5_txt = 'ndcg_wt@5: %f \n' % test_results[5]
                     o_file.write(p1_txt + p3_txt + p5_txt + ndcg1_txt + ndcg3_txt + ndcg5_txt)
-                    print p1_txt + p3_txt + p5_txt + ndcg1_txt + ndcg3_txt + ndcg5_txt
+                    print(p1_txt + p3_txt + p5_txt + ndcg1_txt + ndcg3_txt + ndcg5_txt)
             # save model
             save_name = self.model_path + 'model_final'
             saver.save(sess, save_name)
-            print 'final model saved.'
+            print('final model saved.')
             o_file.close()
 
     def test(self, trained_model_path, output_file_path, test_loader=None):
@@ -317,11 +318,11 @@ class ModelSolver(object):
         with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             tf.global_variables_initializer().run()
             saver = tf.train.Saver(tf.global_variables())
-            print 'load trained model...'
+            print('load trained model...')
             model_name = trained_model_path
             saver.restore(sess, model_name)
             # -------------- test -------------
-            print 'begin testing...'
+            print('begin testing...')
             test_loss = 0
             if self.if_output_all_labels:
                 pre_pid_score = {}
@@ -331,13 +332,13 @@ class ModelSolver(object):
                 # np.random.shuffle(batches)
                 for i in batches:
                     if k % self.show_batches == 0:
-                        print 'batch ' + str(i)
+                        print('batch ' + str(i))
                     batch_pid, batch_x, batch_y = test_loader.get_pid_x(int(i * self.batch_size),
                                                                         int((i + 1) * self.batch_size))
                     try:
                         feed_dict = {self.model.x: np.array(batch_x), self.model.y: np.array(batch_y)}
                     except:
-                        print i
+                        print(i)
                     y_p, l_ = sess.run([y_, loss], feed_dict)
                     # print l_
                     test_loss += l_
@@ -357,11 +358,11 @@ class ModelSolver(object):
                 #self.batch_size = self.batch_pid_size
                 #num_test_points = len(test_loader.pids)
                 test_batches = xrange(int(math.ceil(num_test_points * 1.0 / self.batch_size)))
-                print 'num of test batches: %d' % len(test_batches)
+                print('num of test batches: %d' % len(test_batches))
                 #for i in xrange(len(self.pids)):
                 for i in test_batches:
                     if i % self.show_batches == 0:
-                        print 'batch ' + str(i)
+                        print('batch ' + str(i))
                     batch_pid, x, y, seq_l, label_emb, label_prop, count_score = test_loader.get_batch(
                             num_test_points, i * self.batch_size, (i + 1) * self.batch_size)
                     if self.if_use_seq_len:
@@ -401,7 +402,7 @@ class ModelSolver(object):
                 test_results = results_for_score_vector(tar_pid_true_label_prop, tar_pid_y, pre_pid_score,
                                                         pre_pid_prop)
             w_text = 'test loss is %f \n' % test_loss
-            print w_text
+            print(w_text)
             o_file.write(w_text)
             p1_txt = 'prec_wt@1: %f \n' % test_results[0]
             p3_txt = 'prec_wt@3: %f \n' % test_results[1]
@@ -410,7 +411,7 @@ class ModelSolver(object):
             ndcg3_txt = 'ndcg_wt@3: %f \n' % test_results[4]
             ndcg5_txt = 'ndcg_wt@5: %f \n' % test_results[5]
             o_file.write(p1_txt + p3_txt + p5_txt + ndcg1_txt + ndcg3_txt + ndcg5_txt)
-            print p1_txt + p3_txt + p5_txt + ndcg1_txt + ndcg3_txt + ndcg5_txt
+            print(p1_txt + p3_txt + p5_txt + ndcg1_txt + ndcg3_txt + ndcg5_txt)
 
     def generate_x_embedding(self, trained_model_path):
         # generate candidate label subset via KNN using X-embeddings.
@@ -420,11 +421,11 @@ class ModelSolver(object):
         with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             tf.global_variables_initializer().run()
             saver = tf.train.Saver(tf.global_variables())
-            print 'load trained model...'
+            print('load trained model...')
             model_name = trained_model_path + 'model_final'
             saver.restore(sess, model_name)
             # -------------- get train_x_emb ------------
-            print 'get train_x_emb'
+            print('get train_x_emb')
             i = 0
             k = 0
             zero_y = np.zeros((self.batch_size, 2))
@@ -432,7 +433,7 @@ class ModelSolver(object):
             while i < len(self.train_data.pids):
                 k += 1
                 if k % self.show_batches == 0:
-                    print 'batch ' + str(k)
+                    print('batch ' + str(k))
                 batch_pid, batch_x, batch_len = self.train_data.get_pid_x(i, i + self.batch_size)
                 if self.if_use_seq_len:
                     feed_dict = {self.model.x: np.array(batch_x), self.model.y: np.array(zero_y),
@@ -447,16 +448,16 @@ class ModelSolver(object):
                 for x_i in range(len(batch_pid)):
                     self.train_x_emb[batch_pid[x_i]] = x_emb_[x_i]
                 i += self.batch_size
-            print 'dump train_x_emb'
+            print('dump train_x_emb')
             dump_pickle(self.train_x_emb, trained_model_path+'train_x_emb.pkl')
             # -------------- get test_x_emb -------------
-            print 'get test_x_emb'
+            print('get test_x_emb')
             i = 0
             k = 0
             while i < len(self.test_data.pids):
                 k += 1
                 if k % self.show_batches == 0:
-                    print 'batch ' + str(k)
+                    print('batch ' + str(k))
                 batch_pid, batch_x, batch_len = self.test_data.get_pid_x(i, i + self.batch_size)
                 if self.if_use_seq_len:
                     feed_dict = {self.model.x: np.array(batch_x), self.model.y: np.array(zero_y),
@@ -471,7 +472,7 @@ class ModelSolver(object):
                 for x_i in range(len(batch_pid)):
                     self.test_x_emb[batch_pid[x_i]] = x_emb_[x_i]
                 i += self.batch_size
-            print 'dump test_x_emb'
+            print('dump test_x_emb')
             dump_pickle(self.test_x_emb, trained_model_path+'test_x_emb.pkl')
 
     def get_candidate_label_from_x_emb(self, trained_model_path, k):
@@ -479,9 +480,9 @@ class ModelSolver(object):
         train_emb = self.train_x_emb.values()
         test_pid = self.test_x_emb.keys()
         test_emb = self.test_x_emb.values()
-        print 'begin KNN '
+        print('begin KNN ')
         nbrs = NearestNeighbors(n_neighbors=k).fit(train_emb)
-        print 'end KNN'
+        print('end KNN')
         _, indices = nbrs.kneighbors(test_emb)
         # get candidate label
         test_unique_candidate_label = {}
@@ -500,13 +501,13 @@ class ModelSolver(object):
         dump_pickle(self.test_unique_candidate_label, trained_model_path+'test_candidate_label.pkl')
 
     def predict(self, trained_model_path, output_file_path, k=10, emb_saved=0, can_saved=0):
-        print 'generate X-embedding'
+        print('generate X-embedding')
         if emb_saved:
             self.train_x_emb = load_pickle(trained_model_path+'train_x_emb.pkl')
             self.test_x_emb = load_pickle(trained_model_path+'test_x_emb.pkl')
         else:
             self.generate_x_embedding(trained_model_path)
-        print 'get candidate label from X-embedding'
+        print('get candidate label from X-embedding')
         if can_saved:
             self.test_unique_candidate_label = load_pickle(trained_model_path+'test_candidate_label.pkl')
         else:
@@ -514,7 +515,7 @@ class ModelSolver(object):
         test_loader = copy.deepcopy(self.test_data)
         test_loader.candidate_label_data = self.test_unique_candidate_label
         test_loader.reset_data()
-        print 'begin predict'
+        print('begin predict')
         self.test(trained_model_path, output_file_path, test_loader)
 
 

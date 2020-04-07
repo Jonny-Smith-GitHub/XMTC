@@ -10,7 +10,7 @@ import os
 import re
 import numpy as np
 from collections import defaultdict
-import cPickle as pickle
+import _pickle as pickle
 
 def dump_pickle(data, file):
     try:

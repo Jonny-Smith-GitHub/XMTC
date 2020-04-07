@@ -10,8 +10,10 @@ import argparse
 import numpy as np
 import sys
 import scipy.io as sio
+from jieba import xrange
+
 sys.path.append('../material')
-from utils import load_pickle, dump_pickle, load_txt
+from datasets.material.utils import load_pickle, dump_pickle, load_txt
 
 
 def get_candidate_labels(path, out_path, type, format):

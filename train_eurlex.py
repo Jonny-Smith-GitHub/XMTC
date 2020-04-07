@@ -85,21 +85,21 @@ def main():
     # # add '<PAD>' embedding
     # word_embeddings = np.concatenate((np.zeros((1, word_embedding_dim)), word_embeddings), axis=0)
     # print 'after add PAD embedding, word_embeddings shape:' + str(word_embeddings.shape)
-    print '-------------- load label embeddings ------------------------'
+    print('-------------- load label embeddings ------------------------')
     all_labels, label_embeddings = generate_label_embedding_from_file_2(args.folder_path + 'label.embeddings')
     label_embeddings = np.array(label_embeddings)
     label_dict = dict(zip(all_labels, range(len(all_labels))))
-    print 'number of labels: ' + str(len(all_labels))
+    print('number of labels: ' + str(len(all_labels)))
     # label_embedding_dim
     label_embedding_dim = len(label_embeddings[all_labels[0]])
-    print '-------------- load label propensity ------------------------'
+    print('-------------- load label propensity ------------------------')
     label_prop = load_pickle(args.folder_path + 'inv_prop_dict.pkl')
-    print '-------------- load train/test data -------------------------'
+    print('-------------- load train/test data -------------------------')
     train_doc = load_pickle(args.folder_path + 'train_doc_wordID.pkl')
     test_doc = load_pickle(args.folder_path + 'test_doc_wordID.pkl')
     train_label = load_pickle(args.folder_path + 'train_label.pkl')
     test_label = load_pickle(args.folder_path + 'test_label.pkl')
-    print '-------------- load candidate labels ------------------------'
+    print('-------------- load candidate labels ------------------------')
     if 'sleec' in args.model:
         candidate_type = 'sleec'
     elif 'pfastrexml' in args.model:
@@ -108,17 +108,17 @@ def main():
         candidate_type = 'pfastxml'
     elif 'fastxml' in args.model:
         candidate_type = 'fastxml'
-    print 'candidate from: ' + candidate_type
+    print('candidate from: ' + candidate_type)
     candidate_folder_path = args.folder_path + candidate_type + '_candidate/'
     train_candidate_label = load_pickle(candidate_folder_path + 'train_candidate_label.pkl')
     test_candidate_label = load_pickle(candidate_folder_path + 'test_candidate_label.pkl')
-    print '============== create train/test data loader ...'
+    print('============== create train/test data loader ...')
     if 'XML' not in args.model:
         feature_processor = FeatureProcessor(5000, 100)
         train_loader = TrainDataLoader_final(train_doc, train_label, feature_processor, train_candidate_label, label_dict, label_prop,
                                              16, 16, max_seq_len=args.max_seq_len)
         max_seq_len = train_loader.max_seq_len
-        print 'max_seq_len: ' + str(max_seq_len)
+        print('max_seq_len: ' + str(max_seq_len))
         test_loader = TestDataLoader_final(test_doc, test_label, feature_processor, test_candidate_label, label_dict, label_prop,
                                       max_seq_len=max_seq_len)
         if args.use_graph:
@@ -127,13 +127,13 @@ def main():
         else:
             graph_loader = None
     # ----------------------- train ------------------------
-    print '============== build model ...'
+    print('============== build model ...')
     if 'NN' in args.model:
-        print 'build NN model ...'
+        print('build NN model ...')
         model = NN_graph2(max_seq_len, 5000, args.word_embedding_dim, label_embeddings, 32, args)
         args.if_use_seq_len = 1
 
-    print '================= model solver ...'
+    print('================= model solver ...')
     # solver: __init__(self, model, train_data, test_data, **kwargs):
     solver = ModelSolver2(model, train_loader, test_loader,
                           feature_processor,
@@ -153,17 +153,17 @@ def main():
                           )
     # train
     if args.train:
-        print '================= begin training...'
+        print('================= begin training...')
         solver.train(args.folder_path + args.model + '/outcome.txt')
 
     # test
     if args.test:
-        print '================= begin testing...'
+        print('================= begin testing...')
         solver.test(args.folder_path + args.model + '/' + args.pretrained_model_path, args.folder_path + args.model + '/test_outcome.txt')
 
     # predict
     if args.predict:
-        print '================= begin predicting...'
+        print('================= begin predicting...')
         predict_path = args.folder_path+'model_save/'+args.model+'/'
         solver.predict(trained_model_path=predict_path,
                        output_file_path=predict_path+'predict_outcome.txt',

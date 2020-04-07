@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import os
 import argparse
 import numpy as np
+from model.preprocessing.dataloader import DataLoader_all as DataLoader5
 from model.preprocessing.preprocessing import generate_label_embedding_from_file_2
 from model.preprocessing.dataloader import *
 from model.core.biLSTM import biLSTM
@@ -70,29 +71,29 @@ def main():
     args = parse.parse_args()
 
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    print '-------------- load vocab and word embeddings ---------------'
+    print('-------------- load vocab and word embeddings ---------------')
     word_embeddings = np.load('datasets/material/' + args.word_embedding_path)
     # word_embedding_dim
     word_embedding_dim = word_embeddings.shape[-1]
-    print 'word_embeddings shape: ' + str(word_embeddings.shape)
+    print('word_embeddings shape: ' + str(word_embeddings.shape))
     # add '<PAD>' embedding
     word_embeddings = np.concatenate((np.zeros((1, word_embedding_dim)), word_embeddings), axis=0)
-    print 'after add PAD embedding, word_embeddings shape:' + str(word_embeddings.shape)
-    print '-------------- load label embeddings ------------------------'
+    print('after add PAD embedding, word_embeddings shape:' + str(word_embeddings.shape))
+    print('-------------- load label embeddings ------------------------')
     all_labels, label_embeddings = generate_label_embedding_from_file_2(args.folder_path + 'label.embeddings')
     label_embeddings = np.array(label_embeddings)
     label_dict = dict(zip(all_labels, range(len(all_labels))))
-    print 'number of labels: ' + str(len(all_labels))
+    print('number of labels: ' + str(len(all_labels)))
     # label_embedding_dim
     label_embedding_dim = len(label_embeddings[all_labels[0]])
-    print '-------------- load label propensity ------------------------'
+    print('-------------- load label propensity ------------------------')
     label_prop = load_pickle(args.folder_path + 'inv_prop_dict.pkl')
-    print '-------------- load train/test data -------------------------'
+    print('-------------- load train/test data -------------------------')
     train_doc = load_pickle(args.folder_path + 'train_doc_wordID.pkl')
     test_doc = load_pickle(args.folder_path + 'test_doc_wordID.pkl')
     train_label = load_pickle(args.folder_path + 'train_label.pkl')
     test_label = load_pickle(args.folder_path + 'test_label.pkl')
-    print '-------------- load candidate labels ------------------------'
+    print('-------------- load candidate labels ------------------------')
     if 'sleec' in args.model:
         candidate_type = 'sleec'
     elif 'pfastrexml' in args.model:
@@ -101,42 +102,42 @@ def main():
         candidate_type = 'pfastxml'
     elif 'fastxml' in args.model:
         candidate_type = 'fastxml'
-    print 'candidate from: ' + candidate_type
+    print('candidate from: ' + candidate_type)
     candidate_folder_path = args.folder_path + candidate_type + '_candidate/'
     train_candidate_label = load_pickle(candidate_folder_path + 'train_candidate_label.pkl')
     test_candidate_label = load_pickle(candidate_folder_path + 'test_candidate_label.pkl')
-    print '============== create train/test data loader ...'
+    print('============== create train/test data loader ...')
     if 'XML' not in args.model:
         train_loader = TrainDataLoader2(train_doc, train_label, train_candidate_label, label_dict, label_prop,
                                    10, 10, max_seq_len=args.max_seq_len)
         max_seq_len = train_loader.max_seq_len
         #max_seq_len = args.max_seq_len
         #train_loader = {}
-        print 'max_seq_len: ' + str(max_seq_len)
+        print('max_seq_len: ' + str(max_seq_len))
         test_loader = TestDataLoader2(test_doc, test_label, test_candidate_label, label_dict, label_prop,
                                       max_seq_len=max_seq_len, if_cal_metrics=args.cal_metrics)
         # test_loader = DataLoader3(test_doc, test_label, test_candidate_label, label_dict, args.batch_size,
         #                           given_seq_len=True, max_seq_len=max_seq_len)
     # ----------------------- train ------------------------
-    print '============== build model ...'
+    print('============== build model ...')
     if 'biLSTM' in args.model:
-        print 'build biLSTM model ...'
+        print('build biLSTM model ...')
         # biLSTM: max_seq_len, word_embedding_dim, hidden_dim, label_embedding_dim, num_classify_hidden, args.batch_size
         model = biLSTM(max_seq_len, word_embedding_dim, 64, label_embedding_dim, 32, args)
         args.if_use_seq_len = 1
     elif 'LSTM' in args.model:
-        print 'build LSTM model ...'
+        print('build LSTM model ...')
         # LSTM: max_seq_len, word_embedding_dim, hidden_dim, label_embedding_dim, num_classify_hidden, args.batch_size
         model = LSTM(max_seq_len, word_embedding_dim, 64, label_embedding_dim, 32, args)
         args.if_use_seq_len = 1
     elif 'CNN' in args.model:
-        print 'build CNN model ...'
+        print('build CNN model ...')
         # CNN: sequence_length, word_embeddings, filter_sizes, label_embeddings, num_classify_hidden, args
         # args.num_filters, args.pooling_units, args.batch_size, args.dropout_keep_prob
         model = CNN(max_seq_len, word_embeddings, filter_sizes, label_embeddings, 32, args)
         args.if_use_seq_len = 0
     elif 'XML' in args.model:
-        print 'build XML-CNN model ...'
+        print('build XML-CNN model ...')
         train_loader = DataLoader5(train_doc, train_label, all_labels,
                                    args.batch_size,
                                    given_seq_len=False, max_seq_len=args.max_seq_len)
@@ -150,7 +151,7 @@ def main():
         args.if_output_all_labels = 1
         args.if_use_seq_len = 0
 
-    print '================= model solver ...'
+    print('================= model solver ...')
     # solver: __init__(self, model, train_data, test_data, **kwargs):
     solver = ModelSolver(model, train_loader, test_loader,
                           if_use_seq_len=args.if_use_seq_len,
@@ -165,17 +166,17 @@ def main():
                           test_path=args.folder_path + args.model + '/')
     # train
     if args.train:
-        print '================= begin training...'
+        print('================= begin training...')
         solver.train(args.folder_path + args.model + '/outcome.txt')
 
     # test
     if args.test:
-        print '================= begin testing...'
+        print('================= begin testing...')
         solver.test(args.folder_path + args.model + '/' + args.pretrained_model_path, args.folder_path + args.model + '/test_outcome.txt')
 
     # predict
     if args.predict:
-        print '================= begin predicting...'
+        print('================= begin predicting...')
         predict_path = args.folder_path+'model_save/'+args.model+'/'
         solver.predict(trained_model_path=predict_path,
                        output_file_path=predict_path+'predict_outcome.txt',

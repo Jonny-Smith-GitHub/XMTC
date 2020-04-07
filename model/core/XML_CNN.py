@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import numpy as np
 import tensorflow as tf
 
+
 class XML_CNN(object):
     def __init__(self, max_seq_len, word_embedding, filter_sizes, label_output_dim, hidden_dim, args):
         self.max_seq_len = max_seq_len
@@ -26,10 +27,9 @@ class XML_CNN(object):
 
         self.word_embedding = tf.constant(word_embedding, dtype=tf.float32)
 
-        #self.x = tf.placeholder(tf.float32, [self.batch_size, self.max_seq_len, self.word_embedding_dim])
+        # self.x = tf.placeholder(tf.float32, [self.batch_size, self.max_seq_len, self.word_embedding_dim])
         self.x = tf.placeholder(tf.int32, [self.batch_size, self.max_seq_len])
         self.y = tf.placeholder(tf.float32, [self.batch_size, self.label_output_dim])
-
 
     def build_model(self):
         # x: [batch_size, self.max_seq_len, self.embedding_dim]
@@ -38,7 +38,7 @@ class XML_CNN(object):
         x_expand = tf.expand_dims(x, axis=-1)
         y = self.y
         # dropout
-        #with tf.name_scope('dropout'):
+        # with tf.name_scope('dropout'):
         #    x_expand = tf.nn.dropout(x_expand, keep_prob=0.25)
         conv_outputs = []
         for i, filter_size in enumerate(self.filter_sizes):
@@ -47,7 +47,7 @@ class XML_CNN(object):
                 filter = tf.get_variable('filter-{0}'.format(filter_size),
                                          [filter_size, self.word_embedding_dim, 1, self.num_filters],
                                          initializer=self.weight_initializer)
-                conv = tf.nn.conv2d(x_expand, filter, strides=[1,1,1,1], padding='VALID', name='conv')
+                conv = tf.nn.conv2d(x_expand, filter, strides=[1, 1, 1, 1], padding='VALID', name='conv')
                 b = tf.get_variable('b-{0}'.format(filter_size), [self.num_filters])
                 conv_b = tf.nn.relu(tf.nn.bias_add(conv, b), 'relu')
                 # conv_b: [batch_size, seqence_length-filter_size+1, 1, num_filters]
@@ -70,15 +70,12 @@ class XML_CNN(object):
             # dropout layer
             l_hidden_dropout = tf.nn.dropout(l_hidden, keep_prob=self.dropout_keep_prob)
             # output layer
-            w_o = tf.get_variable('output_w', [self.hidden_dim, self.label_output_dim], initializer=self.weight_initializer)
-            #y_ = tf.nn.relu(tf.matmul(l_hidden_dropout, w_o), 'relu')
+            w_o = tf.get_variable('output_w', [self.hidden_dim, self.label_output_dim],
+                                  initializer=self.weight_initializer)
+            # y_ = tf.nn.relu(tf.matmul(l_hidden_dropout, w_o), 'relu')
             y_ = tf.matmul(l_hidden_dropout, w_o)
 
         # loss
         loss = tf.losses.sigmoid_cross_entropy(y, y_)
-        #print loss.get_shape().as_list()
+        # print loss.get_shape().as_list()
         return y_, y_, loss
-
-
-
-

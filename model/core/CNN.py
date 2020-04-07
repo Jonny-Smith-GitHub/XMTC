@@ -127,9 +127,9 @@ class CNN(object):
                 pool_squeeze = tf.squeeze(pool_out, [-2])
                 # pool_squeeze: [batch_size, pooling_units, num_filters]
                 print [None, self.pooling_units, self.num_filters]
-                print pool_squeeze.get_shape().as_list()
+                print(pool_squeeze.get_shape().as_list())
                 num_hiddens = (self.max_seq_len - filter_size + 1) // pool_size
-                print num_hiddens
+                print(num_hiddens)
                 l_feature = self.attention_layer(pool_squeeze, label_embeddings, num_hiddens, self.num_filters, self.label_embedding_dim, name_scope=name_scope)
                 # l_feature: [batch_size, num_filters]
                 conv_atten_outputs.append(l_feature)

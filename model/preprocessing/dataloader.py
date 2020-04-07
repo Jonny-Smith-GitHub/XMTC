@@ -9,6 +9,8 @@ from __future__ import absolute_import
 import numpy as np
 import math
 import random
+
+from jieba import xrange
 from sklearn.model_selection import train_test_split
 # import re
 # import copy
@@ -40,9 +42,9 @@ class DataLoader():
         self.initialize_dataloader()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         if self.if_use_all_true_label:
             for pid in self.pids:
@@ -103,10 +105,10 @@ class DataLoader():
                     del self.label_data[pid]
                     del self.given_candidate_label_data[pid]
         self.pids = self.label_data.keys()
-        print 'after removing zero-length data'
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('after removing zero-length data')
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         self.reset_data()
 
     def get_pid_x(self, i, j):
@@ -188,9 +190,9 @@ class DataLoader2():
         self.initialize_dataloader()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         if self.if_use_all_true_label:
             for pid in self.pids:
@@ -251,10 +253,10 @@ class DataLoader2():
                     del self.label_data[pid]
                     del self.given_candidate_label_data[pid]
         self.pids = self.label_data.keys()
-        print 'after removing zero-length data'
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('after removing zero-length data')
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         self.reset_data()
 
     def get_pid_x(self, i, j):
@@ -349,9 +351,9 @@ class DataLoader3():
         self.initialize_dataloader()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         self.doc_length = {}
         all_length = []
@@ -365,10 +367,10 @@ class DataLoader3():
                 del self.label_data[pid]
                 del self.candidate_label_data[pid]
         self.pids = self.label_data.keys()
-        print 'after removing zero-length data'
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('after removing zero-length data')
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # assign max_seq_len if not given_seq_len
         if not self.given_seq_len:
             self.max_seq_len = min(max(all_length), self.max_seq_len)
@@ -385,7 +387,7 @@ class DataLoader3():
                 (np.expand_dims(stack_pid, -1), np.expand_dims(label, -1)), axis=-1))
         self.pid_label = np.concatenate(self.pid_label, axis=0)
         self.batch_num = math.ceil(len(self.pid_label) / float(self.batch_size))
-        print 'pid_label shape: ' + str(self.pid_label.shape)
+        print('pid_label shape: ' + str(self.pid_label.shape))
         self.reset_data()
 
     def get_pid_x(self, i, j):
@@ -467,9 +469,9 @@ class DataLoader_all():
         self.reset_data()
 
     def initialize_dataloader(self):
-        print 'num of doc: ' + str(len(self.doc_wordID_data))
-        print 'num of y: ' + str(len(self.label_data))
-        print 'max sequence length: ' + str(self.max_seq_len)
+        print('num of doc: ' + str(len(self.doc_wordID_data)))
+        print('num of y: ' + str(len(self.label_data)))
+        print('max sequence length: ' + str(self.max_seq_len))
         # label
         zero_prop_label = set(range(self.num_labels)) - set(self.label_prop.keys())
         for zero_l in zero_prop_label:
@@ -536,9 +538,9 @@ class TrainDataLoader():
         self.initialize_dataloader()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         for pid in self.pids:
             wordID_seq = self.doc_wordID_data[pid]
@@ -660,9 +662,9 @@ class TestDataLoader():
         self.initialize_dataloader()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         for pid in self.pids:
             wordID_seq = self.doc_wordID_data[pid]
@@ -727,9 +729,9 @@ class TrainDataLoader2():
         self.reset_data()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         for pid in self.pids:
             if self.if_doc_is_dict:
@@ -961,9 +963,9 @@ class TestDataLoader2():
         self.set_all_batch()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         for pid in self.pids:
             if self.if_doc_is_dict:
@@ -1096,8 +1098,9 @@ class TestDataLoader2():
             pre_pid_prop[pid] = [self.label_prop[e] for e in self.candidate_label[pid]]
             pre_pid_score[pid] = np.array(self.candidate_count_score[pid])
         results = results_for_score_vector(tar_pid_true_label_prop, tar_pid_y, pre_pid_score, pre_pid_prop)
-        print '=========== metrics of candidate baseline result =============='
-        print results
+        print('=========== metrics of candidate baseline result ==============')
+        print(results)
+
 
 # DataLoader for graph
 class DataLoader_graph():
@@ -1112,7 +1115,7 @@ class DataLoader_graph():
         # self.num_ver = max(self.graph.keys()) + 1
         # print self.num_ver
         self.num_ver = len(self.graph.keys())
-        print self.num_ver
+        print(self.num_ver)
         # create index_label
         self.index_label = dict((v, k) for k, v in label_dict.items())
         # reset data
@@ -1183,9 +1186,9 @@ class TrainDataLoader_final():
         self.reset_data()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         for pid in self.pids:
             # doc_wordID_data
@@ -1352,9 +1355,9 @@ class TestDataLoader_final():
         self.reset_data()
 
     def initialize_dataloader(self):
-        print 'num of doc:             ' + str(len(self.doc_wordID_data))
-        print 'num of y:               ' + str(len(self.label_data))
-        print 'num of candidate_label: ' + str(len(self.candidate_label_data))
+        print('num of doc:             ' + str(len(self.doc_wordID_data)))
+        print('num of y:               ' + str(len(self.label_data)))
+        print('num of candidate_label: ' + str(len(self.candidate_label_data)))
         # doc_token_data consists of wordIDs in vocab.
         for pid in self.pids:
             # doc_wordID_data
@@ -1460,7 +1463,7 @@ class FeatureProcessor():
             active_feature_id = np.intersect1d(np.intersect1d(idx, non_zero_idx), self.label_pool_feature[label]) + 1
             #print 'number of active features'
             if len(active_feature_id) < self.active_feature_num:
-                print len(active_feature_id)
+                print(len(active_feature_id))
                 padding_num = self.active_feature_num - len(active_feature_id)
                 active_feature_id = np.concatenate((active_feature_id, np.zeros(padding_num)))
             self.label_active_feature_ids[label] = active_feature_id

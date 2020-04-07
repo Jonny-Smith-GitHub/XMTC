@@ -7,7 +7,7 @@ Created on Nov, 2017
 from __future__ import absolute_import
 
 import json
-import cPickle as pickle
+import _pickle as pickle
 
 
 def dump_json(data, file):

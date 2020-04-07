@@ -73,7 +73,7 @@ def construct_corpus_from_file_vocab(corpus_path, vocab):
             if len(token_indices):
                 corpus.append(token_indices)
             else:
-                print line_index
+                print(line_index)
                 error_index.append(line_index)
         fp.close()
     except Exception as e:
@@ -115,7 +115,7 @@ def generate_labels_from_file_and_error(file_name, error_file, output):
             labels.append(labels_doc)
     except Exception as e:
         raise e
-    print 'num of y_label: ' + str(len(labels))
+    print('num of y_label: ' + str(len(labels)))
     dump_pickle(labels, output)
     return labels
 
@@ -186,7 +186,7 @@ def batch_data(data, labels, max_seq_len, num_labels, vocab, word_embeddings, ba
     i = 0
     while i < num:
         if i % 10000 == 0:
-            print i
+            print(i)
         batch_x = []
         batch_y = []
         batch_l = []
@@ -195,7 +195,7 @@ def batch_data(data, labels, max_seq_len, num_labels, vocab, word_embeddings, ba
             try:
                 seq_len, emb = generate_embedding_from_vocabID(data[s], max_seq_len, word_embeddings)
             except Exception as e:
-                print s
+                print(s)
                 raise e
             l_v = generate_label_vector(labels[s], num_labels)
             batch_x.append(emb)
